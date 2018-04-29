@@ -47,14 +47,14 @@ instance Applicative ExactlyOne where
   pure ::
     a
     -> ExactlyOne a
-  pure =
-    error "todo: Course.Applicative pure#instance ExactlyOne"
-  (<*>) :: 
+  pure = ExactlyOne
+    --error "todo: Course.Applicative pure#instance ExactlyOne"
+  (<*>) ::
     ExactlyOne (a -> b)
     -> ExactlyOne a
     -> ExactlyOne b
-  (<*>) =
-    error "todo: Course.Applicative (<*>)#instance ExactlyOne"
+  (<*>) (ExactlyOne f) (ExactlyOne a) = pure (f a)
+    -- error "todo: Course.Applicative (<*>)#instance ExactlyOne"
 
 -- | Insert into a List.
 --
@@ -66,14 +66,16 @@ instance Applicative List where
   pure ::
     a
     -> List a
-  pure =
-    error "todo: Course.Applicative pure#instance List"
+  pure a = a :. Nil
+    -- error "todo: Course.Applicative pure#instance List"
   (<*>) ::
     List (a -> b)
     -> List a
     -> List b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance List"
+  --(<*>) fs as = zipWith (\f a -> f a) fs as
+  (<*>) fs as = foldRight smush Nil fs
+    where smush f bs = foldRight (\w qs -> f w :. qs) Nil as ++ bs
+  -- error "todo: Course.Apply (<*>)#instance List"
 
 -- | Witness that all things with (<*>) and pure also have (<$>).
 --
@@ -90,8 +92,8 @@ instance Applicative List where
   (a -> b)
   -> f a
   -> f b
-(<$$>) =
-  error "todo: Course.Applicative#(<$$>)"
+(<$$>) = (<$>)
+  -- error "todo: Course.Applicative#(<$$>)"
 
 -- | Insert into an Optional.
 --
@@ -109,14 +111,15 @@ instance Applicative Optional where
   pure ::
     a
     -> Optional a
-  pure =
-    error "todo: Course.Applicative pure#instance Optional"
+  pure = Full
+    -- error "todo: Course.Applicative pure#instance Optional"
   (<*>) ::
     Optional (a -> b)
     -> Optional a
     -> Optional b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance Optional"
+  (<*>) (Full f) (Full a) = Full (f a)
+  (<*>) _ _ = Empty
+    -- error "todo: Course.Apply (<*>)#instance Optional"
 
 -- | Insert into a constant function.
 --
@@ -140,14 +143,14 @@ instance Applicative ((->) t) where
   pure ::
     a
     -> ((->) t a)
-  pure =
-    error "todo: Course.Applicative pure#((->) t)"
+  pure = const
+    -- error "todo: Course.Applicative pure#((->) t)"
   (<*>) ::
-    ((->) t (a -> b))
-    -> ((->) t a)
-    -> ((->) t b)
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance ((->) t)"
+    (t -> (a -> b))
+    -> (t -> a)
+    -> (t -> b)
+  (<*>) f g = \t -> (f t) (g t)
+    -- error "todo: Course.Apply (<*>)#instance ((->) t)"
 
 
 -- | Apply a binary function in the environment.
@@ -175,8 +178,8 @@ lift2 ::
   -> f a
   -> f b
   -> f c
-lift2 =
-  error "todo: Course.Applicative#lift2"
+lift2 f fa fb = f <$> fa <*> fb
+  -- error "todo: Course.Applicative#lift2"
 
 -- | Apply a ternary function in the environment.
 --
@@ -207,8 +210,8 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 =
-  error "todo: Course.Applicative#lift3"
+lift3 f fa fb fc = f <$> fa <*> fb <*> fc
+  -- error "todo: Course.Applicative#lift3"
 
 -- | Apply a quaternary function in the environment.
 --
@@ -240,8 +243,8 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 =
-  error "todo: Course.Applicative#lift4"
+lift4 f fa fb fc fd = f <$> fa <*> fb <*> fc <*> fd
+  -- error "todo: Course.Applicative#lift4"
 
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -266,8 +269,8 @@ lift4 =
   f a
   -> f b
   -> f b
-(*>) =
-  error "todo: Course.Applicative#(*>)"
+(*>) = lift2 seq
+  -- error "todo: Course.Applicative#(*>)"
 
 -- | Apply, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -292,8 +295,8 @@ lift4 =
   f b
   -> f a
   -> f b
-(<*) =
-  error "todo: Course.Applicative#(<*)"
+(<*) = lift2 const
+  -- error "todo: Course.Applicative#(<*)"
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -315,8 +318,14 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence = foldRight (lift2 (:.)) (pure Nil)
+{-
+  (a -> b -> b) = (f a -> f (List a) -> f (List a))
+  b = f (List a)
+  List a = List a
+  f (List a)
+-}
+  -- error "todo: Course.Applicative#sequence"
 
 -- | Replicate an effect a given number of times.
 --
@@ -339,8 +348,30 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA num fa = sequence (take num (produce id fa))
+{-
+  In order to transform my f a to f (List a) I my need <$>
+  (a -> b) -> f a -> f b = ? <$> fa
+  (a -> b) -> f a -> f (List a) = ? <$> fa
+  (a -> List a) -> f a -> f (List a) = (pure a) <$> fa
+
+  I know that in order to get that weird cartesian product looking output I need to use <*>
+  f (a -> b) -> f a -> f b
+
+  Given we just worked on sequence and the Full case seems to indicate sequence,
+    maybe I want to converg all my f a to List (f a) then sequence
+-}
+
+
+-- replicateA num fa = foldRight _ (pure Nil) (take num infinity)
+--   where myFun = \_ fla ->
+-- ((:.) <$> fa)
+{-
+  I need: (a -> b) -> f a -> f b (That's fmap: <$>)
+          a -> List a -> List a  (That's cons!: :.)
+          Some way of doing something a number of times??
+-}
+-- replicateA = error "todo: Course.Applicative#replicateA"
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -367,8 +398,13 @@ filtering ::
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
+-- filtering pred items =
+--   bools = pred <$> items
+filtering = error "Skip it"
+{-
+
+-}
+-- filtering = error "todo: Course.Applicative#filtering"
 
 -----------------------
 -- SUPPORT LIBRARIES --

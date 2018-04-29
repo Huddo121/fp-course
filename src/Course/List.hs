@@ -75,8 +75,10 @@ headOr ::
   a
   -> List a
   -> a
-headOr =
-  error "todo: Course.List#headOr"
+headOr = foldRight const
+-- headOr a Nil = a
+-- headOr _ (a :. _) = a
+  -- error "todo: Course.List#headOr"
 
 -- | The product of the elements of a list.
 --
@@ -91,8 +93,9 @@ headOr =
 product ::
   List Int
   -> Int
-product =
-  error "todo: Course.List#product"
+product Nil = 1
+product (x :. xs) = x * product xs
+  -- error "todo: Course.List#product"
 
 -- | Sum the elements of the list.
 --
@@ -106,8 +109,9 @@ product =
 sum ::
   List Int
   -> Int
-sum =
-  error "todo: Course.List#sum"
+sum Nil = 0
+sum (x :. xs) = x + sum xs
+  -- error "todo: Course.List#sum"
 
 -- | Return the length of the list.
 --
@@ -118,8 +122,9 @@ sum =
 length ::
   List a
   -> Int
-length =
-  error "todo: Course.List#length"
+length Nil = 0
+length (_ :. xs) = 1 + length xs
+  -- error "todo: Course.List#length"
 
 -- | Map the given function on each element of the list.
 --
@@ -133,8 +138,9 @@ map ::
   (a -> b)
   -> List a
   -> List b
-map =
-  error "todo: Course.List#map"
+map _ Nil = Nil
+map f (x :. xs) = f x :. map f xs
+  -- error "todo: Course.List#map"
 
 -- | Return elements satisfying the given predicate.
 --
@@ -150,8 +156,10 @@ filter ::
   (a -> Bool)
   -> List a
   -> List a
-filter =
-  error "todo: Course.List#filter"
+filter _ Nil = Nil
+filter predicate (x :. xs) = if predicate x then x :. rest else rest
+  where rest = filter predicate xs
+  -- error "todo: Course.List#filter"
 
 -- | Append two lists to a new list.
 --
@@ -169,8 +177,8 @@ filter =
   List a
   -> List a
   -> List a
-(++) =
-  error "todo: Course.List#(++)"
+(++) l r = foldRight (:.) r l
+  -- error "todo: Course.List#(++)"
 
 infixr 5 ++
 
@@ -187,8 +195,9 @@ infixr 5 ++
 flatten ::
   List (List a)
   -> List a
-flatten =
-  error "todo: Course.List#flatten"
+flatten Nil = Nil
+flatten (l :. r) = l ++ flatten r 
+ -- flatten = error "todo: Course.List#flatten"
 
 -- | Map a function then flatten to a list.
 --
@@ -204,8 +213,9 @@ flatMap ::
   (a -> List b)
   -> List a
   -> List b
-flatMap =
-  error "todo: Course.List#flatMap"
+flatMap _ Nil = Nil
+flatMap f (a :. as) = f a ++ flatMap f as
+  -- error "todo: Course.List#flatMap"
 
 -- | Flatten a list of lists to a list (again).
 -- HOWEVER, this time use the /flatMap/ function that you just wrote.
@@ -214,8 +224,8 @@ flatMap =
 flattenAgain ::
   List (List a)
   -> List a
-flattenAgain =
-  error "todo: Course.List#flattenAgain"
+flattenAgain = flatMap id
+  -- error "todo: Course.List#flattenAgain"
 
 -- | Convert a list of optional values to an optional list of values.
 --
@@ -242,9 +252,10 @@ flattenAgain =
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-seqOptional =
-  error "todo: Course.List#seqOptional"
-
+seqOptional = foldRight check (Full Nil)
+  where check Empty _ = Empty
+        check _ Empty = Empty
+        check (Full a) (Full l) = Full (a :. l)
 -- | Find the first element in the list matching the predicate.
 --
 -- >>> find even (1 :. 3 :. 5 :. Nil)
@@ -265,8 +276,8 @@ find ::
   (a -> Bool)
   -> List a
   -> Optional a
-find =
-  error "todo: Course.List#find"
+find predicate list = foldRight check Empty list
+  where check a b = if predicate a then Full a else b
 
 -- | Determine if the length of the given list is greater than 4.
 --
@@ -284,8 +295,9 @@ find =
 lengthGT4 ::
   List a
   -> Bool
-lengthGT4 =
-  error "todo: Course.List#lengthGT4"
+lengthGT4 (_ :. _ :. _ :. _ :. _) = True
+lengthGT4 _ = False
+  -- error "todo: Course.List#lengthGT4"
 
 -- | Reverse a list.
 --
@@ -301,8 +313,10 @@ lengthGT4 =
 reverse ::
   List a
   -> List a
-reverse =
-  error "todo: Course.List#reverse"
+-- reverse Nil = Nil
+-- reverse (a :. as) = reverse as ++ (a :. Nil)
+reverse = foldLeft (flip (:.)) Nil
+  -- error "todo: Course.List#reverse"
 
 -- | Produce an infinite `List` that seeds with the given value at its head,
 -- then runs the given function for subsequent elements
@@ -330,8 +344,7 @@ produce f x = x :. produce f (f x)
 notReverse ::
   List a
   -> List a
-notReverse =
-  error "todo: Is it even possible?"
+notReverse as = as
 
 ---- End of list exercises
 

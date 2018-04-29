@@ -79,40 +79,51 @@ the contents of c
 -- /Tip:/ use @getArgs@ and @run@
 main ::
   IO ()
-main =
-  error "todo: Course.FileIO#main"
+main = do
+  r <- getArgs
+  case r of
+      Nil -> putStrLn "Oh dear, pass args"
+      (h:._) -> run h
+  -- error "todo: Course.FileIO#main"
 
 -- Given a file name, read it and for each line in that file, read and print contents of each.
 -- Use @getFiles@ and @printFiles@.
 run ::
   FilePath
   -> IO ()
-run =
-  error "todo: Course.FileIO#run"
+run path = do
+  (_, filenames) <- getFile path
+  files <- do
+    f <- getFiles (lines filenames)
+    pure f
+  printFiles files
+  -- error "todo: Course.FileIO#run"
 
 -- Given a list of file names, return list of (file name and file contents).
 -- Use @getFile@.
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo: Course.FileIO#getFiles"
+getFiles paths = sequence $ getFile <$> paths
+  -- error "todo: Course.FileIO#getFiles"
 
 -- Given a file name, return (file name and file contents).
 -- Use @readFile@.
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo: Course.FileIO#getFile"
+getFile path = readFile path >>= \contents -> pure (path, contents)
+  -- error "todo: Course.FileIO#getFile"
 
 -- Given a list of (file name and file contents), print each.
 -- Use @printFile@.
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo: Course.FileIO#printFiles"
+-- printFiles files = foldRight (\(p, c) -> pure (printFile p c)) (pure ()) files
+printFiles = void . sequence . (<$>) (uncurry printFile)
+
+  -- error "todo: Course.FileIO#printFiles"
 
 -- Given the file name, and file contents, print them.
 -- Use @putStrLn@.
@@ -120,5 +131,5 @@ printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo: Course.FileIO#printFile"
+printFile path contents = putStrLn (path ++ contents)
+  -- error "todo: Course.FileIO#printFile"
