@@ -9,7 +9,7 @@ import           Test.Tasty.HUnit      (testCase, (@?=))
 import           Test.Tasty.QuickCheck (testProperty)
 
 import           Course.Applicative    (filtering, lift2, lift3, lift4, pure,
-                                        replicateA, sequence, (*>), (<$$>),
+                                        replicateA, sequence, (*>), lift1,
                                         (<*), (<*>))
 import           Course.Core
 import           Course.ExactlyOne     (ExactlyOne (..))
@@ -56,13 +56,13 @@ listTest =
 
 haveFmapTest :: TestTree
 haveFmapTest =
-  testGroup "<$$>" [
+  testGroup "lift1" [
     testCase "ExactlyOne" $
-      (+ 1) <$$> (ExactlyOne 2) @?= ExactlyOne (3 :: Integer)
+      (lift1 (+ 1) (ExactlyOne 2)) @?= ExactlyOne (3 :: Integer)
   , testCase "empty List" $
-      (+ 1) <$$> Nil @?= Nil
+      (lift1 (+ 1) Nil) @?= Nil
   , testCase "List" $
-      (+ 1) <$$> listh [1,2,3] @?= listh [2,3,4]
+      (lift1 (+ 1) (listh [1,2,3])) @?= listh [2,3,4]
   ]
 
 optionalTest :: TestTree

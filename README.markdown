@@ -75,7 +75,7 @@ available in this repository for your convenience.
 
 3. Execute the command `ghci`, which will compile and load all the source code.
    You may need to set permissions on the root directory and the ghci configuration
-   file, `chmod 600 .ghci ./`.
+   file, `chmod go-w .ghci ./`.
 
 4. Inspect the introductory modules to get a feel for Haskell's syntax, then move
    on to the exercises starting with `Course.Optional`. The
@@ -190,7 +190,7 @@ pattern. Tests are organised in nested groups named after the relevant module
 and function, so pattern matching should be intuitive. For example, to run the
 tests for the `List` module you could run:
 
-    > cabal test tasty --show-detail=direct --test-option=--pattern=List
+    > cabal test tasty --show-detail=direct --test-option=--pattern=Tests/List/
 
 Likewise, to run only the tests for the `headOr` function in the `List` module, you could use:
 
@@ -420,6 +420,39 @@ Are these two programs, the same program?
               _ <- writeFile file "ghijkl"
               y <- expr
               putStrLn (show (x, y))
+
+What about these two programs?
+
+    def writeFile(filename, contents):
+        with open(filename, "w") as f:
+        f.write(contents)
+
+    def readFile(filename):
+        contents = ""
+        with open(filename, "r") as f:
+        contents = f.read()
+        return contents
+
+    def p1():
+        file = "/tmp/file"
+
+        writeFile(file, "abcdef")
+        x = readFile(file)
+        print(x)
+        writeFile(file, "ghijkl")
+        y = readFile(file)
+        print (x + y)
+
+    def p2():
+        file = "/tmp/file"
+        expr = readFile(file)
+
+        writeFile(file, "abcdef")
+        x = expr
+        print(x)
+        writeFile(file, "ghijkl")
+        y = expr
+        print (x + y)
 
 ### One-day
 

@@ -39,7 +39,7 @@ infixl 4 <*>
 
 -- | Insert into ExactlyOne.
 --
--- prop> pure x == ExactlyOne x
+-- prop> \x -> pure x == ExactlyOne x
 --
 -- >>> ExactlyOne (+10) <*> ExactlyOne 8
 -- ExactlyOne 18
@@ -58,7 +58,7 @@ instance Applicative ExactlyOne where
 
 -- | Insert into a List.
 --
--- prop> pure x == x :. Nil
+-- prop> \x -> pure x == x :. Nil
 --
 -- >>> (+1) :. (*2) :. Nil <*> 1 :. 2 :. 3 :. Nil
 -- [2,3,4,2,4,6]
@@ -75,27 +75,9 @@ instance Applicative List where
   (<*>) =
     error "todo: Course.Apply (<*>)#instance List"
 
--- | Witness that all things with (<*>) and pure also have (<$>).
---
--- >>> (+1) <$$> (ExactlyOne 2)
--- ExactlyOne 3
---
--- >>> (+1) <$$> Nil
--- []
---
--- >>> (+1) <$$> (1 :. 2 :. 3 :. Nil)
--- [2,3,4]
-(<$$>) ::
-  Applicative f =>
-  (a -> b)
-  -> f a
-  -> f b
-(<$$>) =
-  error "todo: Course.Applicative#(<$$>)"
-
 -- | Insert into an Optional.
 --
--- prop> pure x == Full x
+-- prop> \x -> pure x == Full x
 --
 -- >>> Full (+8) <*> Full 7
 -- Full 15
@@ -135,7 +117,7 @@ instance Applicative Optional where
 -- >>> ((*) <*> (+2)) 3
 -- 15
 --
--- prop> pure x y == x
+-- prop> \x y -> pure x y == x
 instance Applicative ((->) t) where
   pure ::
     a
@@ -179,6 +161,7 @@ lift2 =
   error "todo: Course.Applicative#lift2"
 
 -- | Apply a ternary function in the environment.
+-- /can be written using `lift2` and `(<*>)`./
 --
 -- >>> lift3 (\a b c -> a + b + c) (ExactlyOne 7) (ExactlyOne 8) (ExactlyOne 9)
 -- ExactlyOne 24
@@ -211,6 +194,7 @@ lift3 =
   error "todo: Course.Applicative#lift3"
 
 -- | Apply a quaternary function in the environment.
+-- /can be written using `lift3` and `(<*>)`./
 --
 -- >>> lift4 (\a b c d -> a + b + c + d) (ExactlyOne 7) (ExactlyOne 8) (ExactlyOne 9) (ExactlyOne 10)
 -- ExactlyOne 34
@@ -243,6 +227,33 @@ lift4 ::
 lift4 =
   error "todo: Course.Applicative#lift4"
 
+-- | Apply a nullary function in the environment.
+lift0 ::
+  Applicative f =>
+  a
+  -> f a
+lift0 =
+  error "todo: Course.Applicative#lift0"
+
+-- | Apply a unary function in the environment.
+-- /can be written using `lift0` and `(<*>)`./
+--
+-- >>> lift1 (+1) (ExactlyOne 2)
+-- ExactlyOne 3
+--
+-- >>> lift1 (+1) Nil
+-- []
+--
+-- >>> lift1 (+1) (1 :. 2 :. 3 :. Nil)
+-- [2,3,4]
+lift1 ::
+  Applicative f =>
+  (a -> b)
+  -> f a
+  -> f b
+lift1 =
+  error "todo: Course.Applicative#lift1"
+
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
 --
@@ -258,9 +269,9 @@ lift4 =
 -- >>> Full 7 *> Full 8
 -- Full 8
 --
--- prop> (a :. b :. c :. Nil) *> (x :. y :. z :. Nil) == (x :. y :. z :. x :. y :. z :. x :. y :. z :. Nil)
+-- prop> \a b c x y z -> (a :. b :. c :. Nil) *> (x :. y :. z :. Nil) == (x :. y :. z :. x :. y :. z :. x :. y :. z :. Nil)
 --
--- prop> Full x *> Full y == Full y
+-- prop> \x y -> Full x *> Full y == Full y
 (*>) ::
   Applicative f =>
   f a
@@ -284,9 +295,9 @@ lift4 =
 -- >>> Full 7 <* Full 8
 -- Full 7
 --
--- prop> (x :. y :. z :. Nil) <* (a :. b :. c :. Nil) == (x :. x :. x :. y :. y :. y :. z :. z :. z :. Nil)
+-- prop> \x y z a b c -> (x :. y :. z :. Nil) <* (a :. b :. c :. Nil) == (x :. x :. x :. y :. y :. y :. z :. z :. z :. Nil)
 --
--- prop> Full x <* Full y == Full x
+-- prop> \x y -> Full x <* Full y == Full x
 (<*) ::
   Applicative f =>
   f b
