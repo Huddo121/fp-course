@@ -351,7 +351,8 @@ sepby pa ps = sepby1 pa ps ||| list pa
 -- True
 eof ::
   Parser ()
-eof = P (\i -> bool (UnexpectedString i) (Result i ()) (i == ""))
+eof = P (\i -> bool (UnexpectedString i) (Result i ()) (i == listh ""))
+-- eof = error "No bueno"
 
 -- | Write a parser that produces a character that satisfies all of the given predicates.
 --
@@ -374,8 +375,8 @@ eof = P (\i -> bool (UnexpectedString i) (Result i ()) (i == ""))
 satisfyAll ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAll preds = P (\i -> (sequence $ satisfy <$> preds) i)
-  -- error "todo: Course.MoreParser#satisfyAll"
+satisfyAll preds = satisfy $ \i -> and $ preds <*> (listh [i])
+-- satisfyAll = error "todo: Course.MoreParser#satisfyAll"
 
 -- | Write a parser that produces a character that satisfies any of the given predicates.
 --
@@ -395,8 +396,8 @@ satisfyAll preds = P (\i -> (sequence $ satisfy <$> preds) i)
 satisfyAny ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAny =
-  error "todo: Course.MoreParser#satisfyAny"
+satisfyAny preds = satisfy $ \i -> or $ preds <*> (listh [i])
+  -- error "todo: Course.MoreParser#satisfyAny"
 
 -- | Write a parser that parses between the two given characters, separated by a comma character ','.
 --
@@ -424,5 +425,5 @@ betweenSepbyComma ::
   -> Char
   -> Parser a
   -> Parser (List a)
-betweenSepbyComma =
-  error "todo: Course.MoreParser#betweenSepbyComma"
+betweenSepbyComma l r p = betweenCharTok l r (sepby p commaTok)
+  -- error "todo: Course.MoreParser#betweenSepbyComma"
