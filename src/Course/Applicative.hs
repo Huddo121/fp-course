@@ -400,7 +400,7 @@ filtering ::
   -> f (List a)
 -- filtering pred items =
 --   bools = pred <$> items
-filtering = error "Skip it"
+filtering pred as = error "mewo" --foldRight (lift2 (\b xs -> if b then a :. xs else xs)) Nil as
 {-
 
 -}

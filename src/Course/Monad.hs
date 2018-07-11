@@ -63,7 +63,8 @@ infixr 1 =<<
   f (a -> b)
   -> f a
   -> f b
-(<**>) = (<*>)
+-- (<**>) = (<*>)
+fab <**> fa = fab >>= \atb -> fa >>= \a -> pure (atb a)
   -- error "todo: Course.Monad#(<**>)"
 
 infixl 4 <**>
