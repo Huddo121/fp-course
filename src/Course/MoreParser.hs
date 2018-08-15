@@ -316,10 +316,11 @@ sepby1 ::
   Parser a
   -> Parser s
   -> Parser (List a)
-sepby1 pa ps =
-  do  v <- pa
-      w <- list (ps *> pa)
-      pure (v:.w)
+-- sepby1 pa ps =
+--   do  v <- pa
+--       w <- list (ps *> pa)
+--       pure (v:.w)
+sepby1 pa ps = lift2 (:.) pa (list (ps *> pa))
   -- error "todo: Course.MoreParser#sepby1"
 -- | Write a function that produces a list of values coming off the given parser,
 -- separated by the second given parser.
@@ -351,7 +352,7 @@ sepby pa ps = sepby1 pa ps ||| list pa
 -- True
 eof ::
   Parser ()
-eof = P (\i -> bool (UnexpectedString i) (Result i ()) (i == listh ""))
+eof = P (\i -> bool (ExpectedEof i) (Result i ()) (i == listh ""))
 -- eof = error "No bueno"
 
 -- | Write a parser that produces a character that satisfies all of the given predicates.
@@ -375,7 +376,9 @@ eof = P (\i -> bool (UnexpectedString i) (Result i ()) (i == listh ""))
 satisfyAll ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAll preds = satisfy $ \i -> and $ preds <*> (listh [i])
+-- satisfyAll preds = satisfy $ \i -> and $ preds <*> (listh [i])
+-- satisfyAll preds = satisfy $ \i -> and (preds <*> pure i)
+satisfyAll preds = satisfy (and . sequence preds)
 -- satisfyAll = error "todo: Course.MoreParser#satisfyAll"
 
 -- | Write a parser that produces a character that satisfies any of the given predicates.
@@ -396,7 +399,8 @@ satisfyAll preds = satisfy $ \i -> and $ preds <*> (listh [i])
 satisfyAny ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAny preds = satisfy $ \i -> or $ preds <*> (listh [i])
+-- satisfyAny preds = satisfy $ \i -> or $ preds <*> (listh [i])
+satisfyAny preds = satisfy (or . sequence preds)
   -- error "todo: Course.MoreParser#satisfyAny"
 
 -- | Write a parser that parses between the two given characters, separated by a comma character ','.
