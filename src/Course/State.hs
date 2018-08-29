@@ -81,10 +81,6 @@ instance Functor (State s) where
     -> State s b
   (<$>) f (State rs) = State (mapFst . rs)
     where mapFst (a, b) = (f a, b)
-  -- rs :: s -> (a, s)
-  ----
-  -- fn :: s -> (b, s)
-                                 -- error "todo: Course.State#(<$>)"
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -180,8 +176,21 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat = error "todo"--findM addAndCheck
+-- firstRepeat = error "todo"--findM addAndCheck
     -- where addAndCheck item = error "meow"
+-- firstRepeat as = eval $ findM (addAndCheck startingState) as
+--     where addAndCheck :: State s Bool -> a -> State s Bool
+--           addAndCheck currentState item = undefined
+--           tracker a = State (\s -> case a `member` s of
+--                                       True -> (True, insert a s)
+--                                       False -> ())
+firstRepeat xs =
+  eval (findM f xs) S.empty
+  where f a = State (\s -> if S.member a s then (True, s) else (False, S.insert a s))
+
+-- State stateType valueType
+-- runState :: s -> (a, s)
+-- runSTate :: stateType -> (valueType, stateType+1)
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -193,8 +202,12 @@ distinct ::
   Ord a =>
   List a
   -> List a
-distinct =
-  error "todo: Course.State#distinct"
+-- distinct xs = toList $ eval (filtering f xs) S.empty
+--   where f a = State (\s -> if S.member a s then ((), s) else ((), S.insert a s))
+distinct xs = eval (filtering f xs) S.empty
+  where f a = (\s -> S.notMember a s <$ put (S.insert a s )) =<< get
+  -- error "todo: Course.State#distinct"
+  -- filtering :: Applicative f => (a -> f Bool) -> List a -> f (List a)
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
@@ -220,5 +233,13 @@ distinct =
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy n = findOne n == Full 1
+  where sumOfSquare m = toInteger $ sum $ square <$> digitToInt <$> show' m
+        square = join (*)
+        pump = produce sumOfSquare
+        findOne m = firstRepeat (pump m)
+
+        -- firstRepeat (produce (toInteger . sum . (square <$>) . digits) n) == Full 1
+  -- error "todo: Course.State#isHappy"
+-- produce :: (a -> a) -> a -> List a
+-- firstRepeat :: Ord a => List a -> Optional a

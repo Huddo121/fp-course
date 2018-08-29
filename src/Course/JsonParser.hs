@@ -112,24 +112,24 @@ jsonString ::
 jsonString =
   let str =
         do c1 <- character
-          if c1 == '\\'
-            then
-              do c2 <- character
-                if c2 == 'u'
-                  then
-                    hex
-                  else
-                    case toSpecialCharacter c2 of
-                      Empty ->
-                        unexpectedCharParser c2
-                      Full d ->
-                        return (fromSpecialCharacter d)
-            else
-              if c1 == '"'
-                then
-                  unexpectedCharParser '"'
-                else
-                return c1
+           if c1 == '\\'
+             then
+               do c2 <- character
+                  if c2 == 'u'
+                    then
+                      hex
+                    else
+                      case toSpecialCharacter c2 of
+                        Empty ->
+                          unexpectedCharParser c2
+                        Full d ->
+                          return (fromSpecialCharacter d)
+             else
+               if c1 == '"'
+                 then
+                   unexpectedCharParser '"'
+                 else
+                  return c1
   in between (is '"') (charTok '"') (list str)
 --jsonString = --between (is '"') (charTok '"') $ list validChars
 -- where validChars = satisfy (== fromSpecialCharacter)
@@ -145,6 +145,7 @@ jsonString =
 --       jsonStringChar = hexu ||| character
 --error "todo: Course.JsonParser#jsonString"
 -- Stolen from Tony's answers
+
 
 -- | Parse a JSON rational.
 --
